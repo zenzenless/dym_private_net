@@ -1,0 +1,12 @@
+[submodule "celestia-app"]
+	path = celestia-app
+	url = ./celestia-app
+[submodule "rollapp"]
+	path = rollapp
+	url = ./rollapp
+[submodule "dymension"]
+	path = dymension
+	url = ./dymension
+[submodule "celestia-node"]
+	path = celestia-node
+	url = ./celestia-node
