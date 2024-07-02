@@ -1,12 +1,16 @@
 [submodule "celestia-app"]
 	path = celestia-app
-	url = ./celestia-app
+	url = https://github.com/zenzenless/celestia-app.git
+	branch = private_network
 [submodule "rollapp"]
 	path = rollapp
-	url = ./rollapp
+	url = https://github.com/zenzenless/rollapp.git
+	branch = private_net
 [submodule "dymension"]
 	path = dymension
-	url = ./dymension
+	url = https://github.com/zenzenless/dymension.git
+	branch = private_net_v3.1.x
 [submodule "celestia-node"]
 	path = celestia-node
-	url = ./celestia-node
+	url = https://github.com/zenzenless/celestia-node.git
+	branch = main
