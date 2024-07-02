@@ -10,7 +10,6 @@
 #   echo "Waiting for node to be up..."
 #   sleep 2s
 # done
-echo "exit 1" > /var/ok.sh
 hash=""
 while true
 do
@@ -23,9 +22,10 @@ do
 done
 
 
-celestia ${NODE_TYPE} init --p2p.network private
 
-echo hash $hash
+init(){
+    celestia ${NODE_TYPE} init --p2p.network private
+    echo hash $hash
 sed -i "s/TrustedHash = \"\"/TrustedHash = ${hash}/" /home/celestia/.celestia-${NODE_TYPE}-private/config.toml
 sed -i "s/SkipAuth = false/SkipAuth = true/" /home/celestia/.celestia-${NODE_TYPE}-private/config.toml
 
@@ -74,4 +74,10 @@ fi
 cat /home/celestia/.celestia-${NODE_TYPE}-private/config.toml
 echo "cp file"
 cp  /core0_shared/keyring-test/* /home/celestia/.celestia-${NODE_TYPE}-private/keys/keyring-test
-celestia ${NODE_TYPE} start --core.ip core0 --core.rpc.port 26657 --core.grpc.port 9090 --p2p.network private --keyring.accname ${NODE_TYPE}
+}
+if [[ ! -f /home/celestia/.celestia-${NODE_TYPE}-private/config.toml ]] 
+then
+    init
+fi
+
+celestia ${NODE_TYPE} start --core.ip core0 --core.rpc.port 26657 --core.grpc.port 9090 --p2p.network private --keyring.accname ${NODE_TYPE} --rpc.addr 0.0.0.0

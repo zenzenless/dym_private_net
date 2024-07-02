@@ -35,6 +35,8 @@ apk update && apk add --no-cache curl jq
 #   sleep 2s
 # done
 
+init(){
+
 
 echo "Initialize a working directory"
 CHAIN_ID="private"
@@ -84,13 +86,17 @@ ls /core0_shared/
       --yes
     output=$(celestia-appd query staking validator "${VAL_ADDRESS}" 2>/dev/null)
     if [[ -n "${output}" ]] ; then
+      echo "exit 0" >>/home/celestia/status.sh
       break
     fi
     echo "trying to create validator..."
     sleep 1s
   done
 } &
+  
+}
 
+/bin/bash /home/celestia/status.sh >/dev/null 2>&1 || init
 # start node
 
 celestia-appd start \
