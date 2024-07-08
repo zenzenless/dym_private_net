@@ -90,7 +90,7 @@ $EXECUTABLE validate-genesis
 if [ -f "$GENESIS_FILE" ]; then
   printf "\n======================================================================================================\n"
   echo "A genesis file already exists."
-  dlv --headless=true --listen=:23456 --log --api-version=2 exec --continue /bin/rollappd start
+  dlv --headless=true --listen=:23456 --log --api-version=2 --accept-multiclient  exec --continue /bin/rollappd start
 else
     echo "start init rollup app"
     init
@@ -132,7 +132,7 @@ else
     done
     mkdir -p "$ROLLAPP_CHAIN_DIR"/sequencer_keys
     cp -r /dymension_home/keyring-test "$ROLLAPP_CHAIN_DIR"/sequencer_keys/keyring-test
-    dlv --headless=true --listen=:23456 --log --api-version=2 exec --continue /bin/rollappd start
+    dlv --headless=true --listen=:23456 --log --api-version=2 --accept-multiclient  exec --continue /bin/rollappd start
 fi
 
 
