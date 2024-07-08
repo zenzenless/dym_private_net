@@ -177,23 +177,30 @@ create_rollapp(){
   echo "exit 0" >${DATA_DIRECTORY}/dymd_ok.sh
 }&
 }
+
+# {
+#     while true
+#     do
+#          output=$(pgrep dymd)
+#         if [[ -n "${output}" ]] ; then
+#             echo "start debug dymd server session"
+#             dlv --headless=true --listen=:23456 --log --api-version=2 --accept-multiclient attach $output
+#         fi
+#         sleep 5s
+#     done
+# }&
+
 # Verify that a genesis file doesn't exists for the dymension chain
 if [ -f "$GENESIS_FILE" ]; then
   printf "\n======================================================================================================\n"
   echo "A genesis file already exists."
-  dymd start
+  dlv --headless=true --listen=:23456 --log --api-version=2 --accept-multiclient exec --continue  /usr/local/bin/dymd start
 else
   echo "start init dymesion node"
   init
   create_rollapp
-  dymd start
+  dlv --headless=true --listen=:23456 --log --api-version=2 --accept-multiclient exec --continue /usr/local/bin/dymd start
 fi
 
 
 
-#在dymension上创建rollapp（使用上文中的$ROLLAPP_CHAIN_ID）
-
-#dymd tx rollapp create-rollapp rollappevm_1234-1 1 '{"Addresses":[]}' --from ${KEY_NAME} --keyring-backend test --broadcast-mode block --yes
-
-#为rollapp添加sequencer
-#dymd tx sequencer create-sequencer "$(rollappd dymint show-sequencer)" rollappevm_1234-1 "{\"Moniker\":\"rolmoniker\",\"Identity\":\"\",\"Website\":\"\",\"SecurityContact\":\"\",\"Details\":\"\"}" 1000000adym --from sequencer --keyring-dir ~/.rollapp/sequencer_keys --keyring-backend test --broadcast-mode block
