@@ -1,12 +1,12 @@
 [submodule "celestia-app"]
 	path = celestia-app
-	url = https://github.com/zenzenless/celestia-app.git
+	url = https://github.com/celestiaorg/celestia-app.git
 [submodule "rollapp"]
 	path = rollapp
 	url = https://github.com/zenzenless/rollapp.git
 [submodule "dymension"]
 	path = dymension
-	url = https://github.com/zenzenless/dymension.git
+	url = git@github.com:st-chain/me-hub.git
 [submodule "celestia-node"]
 	path = celestia-node
-	url = https://github.com/zenzenless/celestia-node.git
+	url = https://github.com/celestiaorg/celestia-node.git
