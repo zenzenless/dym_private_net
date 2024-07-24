@@ -191,6 +191,7 @@ else
     while true
     do
         bash /dymension_home/dymd_ok.sh >/dev/null 2>&1 && break
+        echo "waiting for dymension-hub create sequencer"
         sleep 3s
     done
     mkdir -p "$ROLLAPP_CHAIN_DIR"/sequencer_keys

@@ -249,35 +249,16 @@ services:
       "/app/start_dymd_node.sh"
     ]
 
-  rollup-app:
-    container_name: rollup_app
-    depends_on:
-      dymension:
-        condition: service_healthy
-    build:
-      context: ../rollapp
-    volumes:
-      - rollup_app_home:/root/.rollapp
-      - ${PWD}/config/rollup_app/dymint.toml:/root/.rollapp/config/dymint.toml
-      - ${PWD}/scripts/start_rollup_app.sh:/scripts/start_rollup_app.sh:ro
-      - dymension_home:/dymension_home:ro
-    entrypoint: [
-      "/bin/bash"
-    ]
-    command:  [
-      "/scripts/start_rollup_app.sh"
-    ]
-
-  # rollup-app:
-  #   container_name: rollup_app
+  # rollup-app-evm:
+  #   container_name: rollup_app_evm
   #   depends_on:
   #     dymension:
   #       condition: service_healthy
   #   build:
   #     context: ../rollapp-evm
   #   volumes:
-  #     - rollup_app_home:/root/.rollapp_evm
-  #     - ${PWD}/config/rollup_app_evm/dymint.toml:/root/.rollapp_evm/config/dymint.toml
+  #     - rollup_app_home:/root/.rollapp
+  #     - ${PWD}/config/rollup_app/dymint.toml:/root/.rollapp/config/dymint.toml
   #     - ${PWD}/scripts/start_rollup_app_evm.sh:/scripts/start_rollup_app_evm.sh:ro
   #     - dymension_home:/dymension_home:ro
   #   entrypoint: [
@@ -286,6 +267,25 @@ services:
   #   command:  [
   #     "/scripts/start_rollup_app_evm.sh"
   #   ]
+
+  rollup-app-evm:
+    container_name: rollup_app_evm
+    depends_on:
+      dymension:
+        condition: service_healthy
+    build:
+      context: ../rollapp-evm
+    volumes:
+      - rollup_app_home:/root/.rollapp_evm
+      - ${PWD}/config/rollup_app_evm/dymint.toml:/root/.rollapp_evm/config/dymint.toml
+      - ${PWD}/scripts/start_rollup_app_evm.sh:/scripts/start_rollup_app_evm.sh:ro
+      - dymension_home:/dymension_home:ro
+    entrypoint: [
+      "/bin/bash"
+    ]
+    command:  [
+      "/scripts/start_rollup_app_evm.sh"
+    ]
     
 volumes:
   prometheus-data:
