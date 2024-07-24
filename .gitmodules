@@ -3,7 +3,7 @@
 	url = https://github.com/celestiaorg/celestia-app.git
 [submodule "rollapp"]
 	path = rollapp
-	url = https://github.com/zenzenless/rollapp.git
+	url = git@github.com:st-chain/rollapp.git
 [submodule "dymension"]
 	path = dymension
 	url = git@github.com:st-chain/me-hub.git

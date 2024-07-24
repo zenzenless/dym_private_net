@@ -1,0 +1,302 @@
+services:
+  core0:
+    user: "0:0"
+    container_name: core0
+    healthcheck:
+      test: ["CMD", "celestia-appd","status"]
+      interval: 3s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    build:
+      context: ../celestia-app
+    expose:
+      - "26660" # for prometheus
+    ports:
+      - "9090:9090"
+      - "26657:26657"
+      - "1317:1317"
+    entrypoint: [
+      "/bin/bash"
+    ]
+    command: [
+      "/opt/start_core0.sh"
+    ]
+    volumes:
+      - core0_home:/home/celestia
+      - core0_shared:/core0_shared
+      - ${PWD}/scripts/start_core0.sh:/opt/start_core0.sh:ro
+      - ${PWD}/config/celestia_core0/config.toml:/home/celestia/.celestia-app/config/config.toml
+
+  core1:
+    user: "0:0"
+    container_name: core1
+    build:
+      context: ../celestia-app
+    expose:
+      - "26660" # for prometheus
+    depends_on:
+      core0:
+        condition: service_healthy
+    environment:
+      - MONIKER=core1
+      - CELESTIA_HOME=/opt
+      - AMOUNT=5000000000utia
+    entrypoint: [
+      "/bin/bash"
+    ]
+    command: [
+      "/opt/start_node_and_create_validator.sh"
+    ]
+    volumes:
+      - core1_home:/home/celestia
+      - core0_shared:/core0_shared:ro
+      - ${PWD}/scripts/start_node_and_create_validator.sh:/opt/start_node_and_create_validator.sh:ro
+    
+
+  core2:
+    user: "0:0"
+    container_name: core2
+    build:
+      context: ../celestia-app
+    expose:
+      - "26660" # for prometheus
+    depends_on:
+      core0:
+        condition: service_healthy
+    environment:
+      - MONIKER=core2
+      - CELESTIA_HOME=/opt
+      - AMOUNT=5000000000utia
+    entrypoint: [
+      "/bin/bash"
+    ]
+    command: [
+      "/opt/start_node_and_create_validator.sh"
+    ]
+    volumes:
+      - core2_home:/home/celestia
+      - core0_shared:/core0_shared:ro
+      - ${PWD}/scripts/start_node_and_create_validator.sh:/opt/start_node_and_create_validator.sh:ro
+    
+
+  core3:
+    user: "0:0"
+    container_name: core3
+    build:
+      context: ../celestia-app
+    expose:
+      - "26660" # for prometheus
+    depends_on:
+      core0:
+        condition: service_healthy
+    environment:
+      - MONIKER=core3
+      - CELESTIA_HOME=/opt
+      - AMOUNT=5000000000utia
+    entrypoint: [
+      "/bin/bash"
+    ]
+    command: [
+      "/opt/start_node_and_create_validator.sh"
+    ]
+    volumes:
+      - core3_home:/home/celestia
+      #- core0_shared/keyring-test:/opt/keyring-test:ro
+      - core0_shared:/core0_shared:ro
+      - ${PWD}/scripts/start_node_and_create_validator.sh:/opt/start_node_and_create_validator.sh:ro
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    ports:
+      - "9000:9090"
+    volumes:
+      - ${PWD}/telemetry/prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    # yamllint disable-line rule:line-length
+    command: --web.enable-lifecycle  --config.file=/etc/prometheus/prometheus.yml
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    
+
+  otel-collector:
+    container_name: otel-collector
+    image: otel/opentelemetry-collector
+    command: ["--config=/root/otel-collector/config.yml"]
+    volumes:
+      - ${PWD}/telemetry/otel-collector:/root/otel-collector/
+    ports:
+      - "8888:8888"   # Prometheus metrics exposed by the collector
+      - "8889:8889"   # Prometheus exporter metrics
+      - "55681:55681"
+      - "13133:13133"  # health_check extension
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP http receiver
+      - "4319:4319"   # OTLP http receiver
+    
+
+    
+  grafana:
+    # default credentials: admin:admin
+    container_name: grafana
+    image: grafana/grafana:latest
+    user: "0"
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    volumes:
+      - ${PWD}/telemetry/grafana/:/etc/grafana/provisioning/
+      - ${PWD}/telemetry/grafana/:/var/lib/grafana/dashboards/
+      - ${PWD}/telemetry/grafana/datasources/:/var/lib/grafana/datasources/
+      - grafana-data:/var/lib/grafana
+    
+
+  bridge-node:
+    depends_on:
+      core0:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "/bin/bash","/var/ok.sh"]
+      interval: 3s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    user: "0:0"
+    container_name: bridge_node
+    environment:
+      - NODE_TYPE=bridge
+    volumes:
+      - ${PWD}/scripts/start_celestia_node.sh:/opt/start_celestia_node.sh:ro
+      - celestia-node:/home/celestia/
+    #  - ${PWD}/celestia_node/peer.info:/home/celestia/peer.info
+      - core0_shared:/core0_shared:ro
+    build:
+      context: ../celestia-node 
+    entrypoint: [
+      "/bin/bash"
+    ]
+    command: [
+      /opt/start_celestia_node.sh 
+    ]
+    
+
+  light-node:
+    depends_on:
+      bridge-node:
+        condition: service_healthy
+    user: "0:0"
+    container_name: light_node
+    environment:
+      - NODE_TYPE=light
+    volumes:
+      - ${PWD}/scripts/start_celestia_node.sh:/opt/start_celestia_node.sh:ro
+      #- ${PWD}/celestia_node/peer.info:/home/celestia/peer.info:ro
+      - celestia-node:/home/celestia/
+      - core0_shared:/core0_shared:ro
+    build:
+      context: ../celestia-node 
+    entrypoint: [
+      "/bin/bash"
+    ]
+    command: [
+      /opt/start_celestia_node.sh 
+    ]
+    
+
+    
+  full-node:
+    depends_on:
+      bridge-node:
+        condition: service_healthy
+    user: "0:0"
+    container_name: full_node
+    environment:
+      - NODE_TYPE=full
+    volumes:
+      - ${PWD}/scripts/start_celestia_node.sh:/opt/start_celestia_node.sh:ro
+      #- ${PWD}/celestia_node/peer.info:/home/celestia/peer.info:ro
+      - celestia-node:/home/celestia/
+      - core0_shared:/core0_shared:ro
+    build:
+      context: ../celestia-node 
+    entrypoint: [
+      "/bin/bash"
+    ]
+    command: [
+      /opt/start_celestia_node.sh 
+    ]
+
+  dymension:
+    container_name: dymension
+    healthcheck:
+     test: ["CMD", "dymd","status"]
+     interval: 3s
+     timeout: 5s
+     retries: 5
+     start_period: 30s
+    volumes:
+      - dymension_home:/root/.dymension
+      - ${PWD}/scripts/start_dymd_node.sh:/app/start_dymd_node.sh:ro
+      - rollup_app_home:/rollup_app_home
+    build:
+      context: ../dymension
+    entrypoint: [
+      "/bin/bash"
+    ]
+    command:  [
+      "/app/start_dymd_node.sh"
+    ]
+
+  rollup-app:
+    container_name: rollup_app
+    depends_on:
+      dymension:
+        condition: service_healthy
+    build:
+      context: ../rollapp
+    volumes:
+      - rollup_app_home:/root/.rollapp
+      - ${PWD}/config/rollup_app/dymint.toml:/root/.rollapp/config/dymint.toml
+      - ${PWD}/scripts/start_rollup_app.sh:/scripts/start_rollup_app.sh:ro
+      - dymension_home:/dymension_home:ro
+    entrypoint: [
+      "/bin/bash"
+    ]
+    command:  [
+      "/scripts/start_rollup_app.sh"
+    ]
+
+  # rollup-app:
+  #   container_name: rollup_app
+  #   depends_on:
+  #     dymension:
+  #       condition: service_healthy
+  #   build:
+  #     context: ../rollapp-evm
+  #   volumes:
+  #     - rollup_app_home:/root/.rollapp_evm
+  #     - ${PWD}/config/rollup_app_evm/dymint.toml:/root/.rollapp_evm/config/dymint.toml
+  #     - ${PWD}/scripts/start_rollup_app_evm.sh:/scripts/start_rollup_app_evm.sh:ro
+  #     - dymension_home:/dymension_home:ro
+  #   entrypoint: [
+  #     "/bin/bash"
+  #   ]
+  #   command:  [
+  #     "/scripts/start_rollup_app_evm.sh"
+  #   ]
+    
+volumes:
+  prometheus-data:
+  grafana-data:
+  celestia-node:
+  core0_shared:
+  core0_home:
+  core1_home:
+  core2_home:
+  core3_home:
+  dymension_home:
+  rollup_app_home:
+
+
