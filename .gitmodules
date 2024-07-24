@@ -10,3 +10,6 @@
 [submodule "celestia-node"]
 	path = celestia-node
 	url = https://github.com/celestiaorg/celestia-node.git
+[submodule "rollapp-evm"]
+	path = rollapp-evm
+	url = git@github.com:st-chain/rollapp-evm.git
